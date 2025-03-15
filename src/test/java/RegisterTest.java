@@ -1,11 +1,10 @@
+import com.github.javafaker.Faker;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import pages.LoginPage;
@@ -15,28 +14,15 @@ import user.UserApi;
 
 import java.time.Duration;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(Parameterized.class)
 public class RegisterTest extends BaseUITest {
 
-    protected final String name;
-    protected final String email;
-    protected final String password;
-
-    public RegisterTest(String name, String email, String password) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-    }
-
-    @Parameterized.Parameters
-    public static Object[][] getUserData() {
-        return new Object[][] {
-                { "Sasha", "Sasha@mail.ru", "7654321" },
-        };
-    }
+    private final Faker faker = new Faker();
+    private final String name = faker.name().firstName();
+    private final String email = faker.internet().emailAddress();
+    private final String password = faker.internet().password(8, 12);
 
     @After
     public void deleteUser() {

@@ -1,3 +1,4 @@
+import com.github.javafaker.Faker;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
@@ -10,15 +11,15 @@ import org.junit.runners.Parameterized;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import pages.ConstructorPage;
-import pages.LoginPage;
 import pages.ForgotPasswordPage;
+import pages.LoginPage;
 import pages.RegisterPage;
 import user.User;
 import user.UserApi;
 
 import java.time.Duration;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
@@ -26,23 +27,24 @@ public class LoginTest extends BaseUITest {
 
     protected UserApi userApi;
     protected User user;
-    private final String name;
-    private final String password;
-    private final String email;
     private final int loginVersion;
     protected String accessToken;
 
-    public LoginTest(int loginVersion, String name, String password, String email) {
-        this.name = name;
-        this.password = password;
-        this.email = email;
+    private final Faker faker = new Faker();
+
+    public LoginTest(int loginVersion) {
         this.loginVersion = loginVersion;
     }
 
     @Before
     public void setUp() {
         userApi = new UserApi();
-        user = new User(name, password, email);
+
+        String randomName = faker.name().fullName();
+        String randomPassword = faker.internet().password();
+        String randomEmail = faker.internet().emailAddress();
+
+        user = new User(randomName, randomPassword, randomEmail);
 
         ValidatableResponse response = userApi.createUser(user);
         response.log().all()
@@ -73,10 +75,10 @@ public class LoginTest extends BaseUITest {
     @Parameterized.Parameters
     public static Object[][] getUserData() {
         return new Object[][] {
-                { 1, "Sashka", "password123", "sashka@123.com" },
-                { 2, "Sveta", "qwerty123", "svetik12345@123.com" },
-                { 3, "Masha", "123qwerty123", "mariya123@123.com" },
-                { 4, "Dasha", "password115", "darya12345@321.com" }
+                { 1 },
+                { 2 },
+                { 3 },
+                { 4 }
         };
     }
 
@@ -111,8 +113,8 @@ public class LoginTest extends BaseUITest {
         String currentUrl = driver.getCurrentUrl();
         assertEquals(LoginPage.LOGIN_PAGE_URL, currentUrl);
 
-        loginPage.setEmail(email);
-        loginPage.setPassword(password);
+        loginPage.setEmail(user.getEmail());
+        loginPage.setPassword(user.getPassword());
         loginPage.clickLoginButton();
 
         new WebDriverWait(driver, Duration.ofSeconds(5))

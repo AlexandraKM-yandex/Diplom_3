@@ -16,29 +16,35 @@ public class ConstructorPage extends BasePage {
 
     public static final String CONSTRUCTOR_PAGE_URL = BASE_URL;
 
+    private final By inactiveBunsTabButton = By.xpath("//span[text()='Булки']/parent::div");
+    private final By activeBunsTabButton = By.xpath("//div[contains(@class, 'current') and ./span[text()='Булки']]");
+
+    private final By inactiveSaucesTabButton = By.xpath("//div[./span[text()='Соусы']]");
+    private final By activeSaucesTabButton = By.xpath("//div[contains(@class, 'current') and ./span[text()='Соусы']]");
+
+    private final By inactiveFillingsTabButton = By.xpath("//div[./span[text()='Начинки']]");
+    private final By activeFillingsTabButton = By.xpath("//div[contains(@class, 'current') and ./span[text()='Начинки']]");
+
     private final By accountButton = By.xpath("//a[@href='/account']");
     private final By loginButton = By.xpath("//button[text()='Войти в аккаунт']");
-    private final By bunsTabButton = By.xpath("//span[text()='Булки']/parent::div");
-    private final By saucesTabButton = By.xpath("//div[./span[text()='Соусы']]");
-    private final By fillingsTabButton = By.xpath("//div[./span[text()='Начинки']]");
 
-    public ConstructorPage(WebDriver driver){
+    public ConstructorPage(WebDriver driver) {
         this.driver = driver;
     }
 
     @Step("Открыть страницу конструктора")
-    public ConstructorPage openConstructorPage(){
+    public ConstructorPage openConstructorPage() {
         driver.get(CONSTRUCTOR_PAGE_URL);
         return this;
     }
 
     @Step("Открыть аккаунт пользователя")
-    public void clickUserAccountButton(){
+    public void clickUserAccountButton() {
         clickElement(accountButton);
     }
 
     @Step("Перейти на вкладку входа в аккаунт")
-    public void clickEnterUserAccountButton(){
+    public void clickEnterUserAccountButton() {
         clickElement(loginButton);
     }
 
@@ -50,57 +56,55 @@ public class ConstructorPage extends BasePage {
     }
 
     @Step("Выбрать вкладку 'Булки'")
-    public void clickBunsTab(){
-        clickTab(bunsTabButton);
+    public void clickBunsTab() {
+        clickTab(inactiveBunsTabButton, activeBunsTabButton);
     }
 
     @Step("Выбрать вкладку 'Соусы'")
-    public void clickSaucesTab(){
-        clickTab(saucesTabButton);
+    public void clickSaucesTab() {
+        clickTab(inactiveSaucesTabButton, activeSaucesTabButton);
     }
 
     @Step("Выбрать вкладку 'Начинки'")
-    public void clickFillingsTab(){
-        clickTab(fillingsTabButton);
+    public void clickFillingsTab() {
+        clickTab(inactiveFillingsTabButton, activeFillingsTabButton);
     }
 
-    private void clickTab(By tabLocator){
+    private void clickTab(By inactiveTabButton, By activeTabButton) {
+        WebElement tabElement = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.visibilityOfElementLocated(inactiveTabButton));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tabElement);
         new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.visibilityOfElementLocated(tabLocator));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(tabLocator));
+                .until(ExpectedConditions.attributeContains(activeTabButton, "class", "tab_tab_type_current__2BEPc"));
     }
 
-    private boolean isTabCurrent(By tabLocator) {
-        WebElement tabElement = driver.findElement(tabLocator);
-        return tabElement.getAttribute("class").contains("current");
-    }
-
-    public boolean checkIfTabIsCurrent(By tabLocator, By... otherTabs) {
-        if (isTabCurrent(tabLocator)) {
-            for (By otherTab : otherTabs) {
-                if (isTabCurrent(otherTab)) {
-                    return false;
-                }
-            }
-            return true;
+    private boolean isTabCurrent(By activeTabLocator) {
+        try {
+            WebElement tabElement = new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.presenceOfElementLocated(activeTabLocator));
+            return tabElement.getAttribute("class").contains("tab_tab_type_current__2BEPc");
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 
-    public boolean checkIfBunsTabIsCurrent(){
-        return checkIfTabIsCurrent(bunsTabButton, saucesTabButton, fillingsTabButton);
+    @Step("Проверить, является ли вкладка 'Булки' активной")
+    public boolean checkIfBunsTabIsCurrent() {
+        return isTabCurrent(activeBunsTabButton);
     }
 
-    public boolean checkIfSaucesTabIsCurrent(){
-        return checkIfTabIsCurrent(saucesTabButton, bunsTabButton, fillingsTabButton);
+    @Step("Проверить, является ли вкладка 'Соусы' активной")
+    public boolean checkIfSaucesTabIsCurrent() {
+        return isTabCurrent(activeSaucesTabButton);
     }
 
-    public boolean checkIfFillingsTabIsCurrent(){
-        return checkIfTabIsCurrent(fillingsTabButton, bunsTabButton, saucesTabButton);
+    @Step("Проверить, является ли вкладка 'Начинки' активной")
+    public boolean checkIfFillingsTabIsCurrent() {
+        return isTabCurrent(activeFillingsTabButton);
     }
 
     @Step("Перейти на страницу входа")
-    public void loginVersions(int version){
+    public void loginVersions(int version) {
         if (version == 1) {
             clickUserAccountButton();
         } else if (version == 2) {
